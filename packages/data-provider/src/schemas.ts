@@ -25,6 +25,7 @@ export const defaultEndpoints: EModelEndpoint[] = [
 export const defaultModels = {
   [EModelEndpoint.google]: [
     'gemini-pro',
+    'gemini-pro-vision',
     'chat-bison',
     'chat-bison-32k',
     'codechat-bison',
@@ -135,7 +136,9 @@ export const modularEndpoints = new Set<EModelEndpoint | string>([
 
 export const supportsFiles = {
   [EModelEndpoint.openAI]: true,
+  [EModelEndpoint.google]: true,
   [EModelEndpoint.assistant]: true,
+  [EModelEndpoint.azureOpenAI]: true,
 };
 
 export const supportsBalanceCheck = {
@@ -144,7 +147,7 @@ export const supportsBalanceCheck = {
   [EModelEndpoint.gptPlugins]: true,
 };
 
-export const visionModels = ['gpt-4-vision', 'llava-13b'];
+export const visionModels = ['gpt-4-vision', 'llava-13b', 'gemini-pro-vision'];
 
 export const eModelEndpointSchema = z.nativeEnum(EModelEndpoint);
 

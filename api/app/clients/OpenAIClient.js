@@ -1,7 +1,7 @@
 const OpenAI = require('openai');
 const { HttpsProxyAgent } = require('https-proxy-agent');
-const { encoding_for_model: encodingForModel, get_encoding: getEncoding } = require('tiktoken');
 const { getResponseSender, EModelEndpoint } = require('librechat-data-provider');
+const { encoding_for_model: encodingForModel, get_encoding: getEncoding } = require('tiktoken');
 const { encodeAndFormat, validateVisionModel } = require('~/server/services/Files/images');
 const { getModelMaxTokens, genAzureChatCompletion, extractBaseURL } = require('~/utils');
 const { truncateText, formatMessage, CUT_OFF_PROMPT } = require('./prompts');
@@ -76,11 +76,14 @@ class OpenAIClient extends BaseClient {
       };
     }
 
-    if (this.options.attachments && !validateVisionModel(this.modelOptions.model)) {
+    this.isVisionModel = validateVisionModel(this.modelOptions.model);
+
+    if (this.options.attachments && !this.isVisionModel) {
       this.modelOptions.model = 'gpt-4-vision-preview';
+      this.isVisionModel = true;
     }
 
-    if (validateVisionModel(this.modelOptions.model)) {
+    if (this.isVisionModel) {
       delete this.modelOptions.stop;
     }
 
@@ -152,7 +155,7 @@ class OpenAIClient extends BaseClient {
 
     this.setupTokens();
 
-    if (!this.modelOptions.stop && !validateVisionModel(this.modelOptions.model)) {
+    if (!this.modelOptions.stop && !this.isVisionModel) {
       const stopTokens = [this.startToken];
       if (this.endToken && this.endToken !== this.startToken) {
         stopTokens.push(this.endToken);
@@ -394,7 +397,7 @@ class OpenAIClient extends BaseClient {
     let streamResult = null;
     this.modelOptions.user = this.user;
     const invalidBaseUrl = this.completionsUrl && extractBaseURL(this.completionsUrl) === null;
-    const useOldMethod = !!(this.azure || invalidBaseUrl || !this.isChatCompletion);
+    const useOldMethod = !!(invalidBaseUrl || !this.isChatCompletion);
     if (typeof opts.onProgress === 'function' && useOldMethod) {
       await this.getCompletion(
         payload,
@@ -689,7 +692,7 @@ ${convo}
   }
 
   async recordTokenUsage({ promptTokens, completionTokens }) {
-    logger.debug('[OpenAIClient]', { promptTokens, completionTokens });
+    logger.debug('[OpenAIClient] recordTokenUsage:', { promptTokens, completionTokens });
     await spendTokens(
       {
         user: this.user,
@@ -757,8 +760,17 @@ ${convo}
         opts.httpAgent = new HttpsProxyAgent(this.options.proxy);
       }
 
-      if (validateVisionModel(modelOptions.model)) {
+      if (this.isVisionModel) {
         modelOptions.max_tokens = 4000;
+      }
+
+      if (this.azure || this.options.azure) {
+        // Azure does not accept `model` in the body, so we need to remove it.
+        delete modelOptions.model;
+
+        opts.baseURL = this.azureEndpoint.split('/chat')[0];
+        opts.defaultQuery = { 'api-version': this.azure.azureOpenAIApiVersion };
+        opts.defaultHeaders = { ...opts.defaultHeaders, 'api-key': this.apiKey };
       }
 
       let chatCompletion;
