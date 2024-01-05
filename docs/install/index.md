@@ -1,5 +1,6 @@
 ---
 title: Installation and Configuration
+description: 💻 In-depth guides about installation and configuration
 weight: 1
 ---
 
@@ -8,7 +9,7 @@ weight: 1
 ## **[Installation](./installation/index.md)**
 
   * 🐳 [Docker Compose (✨ Recommended)](./installation/docker_compose_install.md)
-  * 🦦 [Container (podman)](./installation/container_install.md)
+  * 🦦 [Container (Podman)](./installation/container_install.md)
   * 🐧 [Linux](./installation/linux_install.md) 
   * 🍎 [Mac](./installation/mac_install.md) 
   * 🪟 [Windows](./installation/windows_install.md) 
@@ -16,6 +17,7 @@ weight: 1
 ## **[Configuration](./configuration/index.md)**
 
   * ⚙️ [Environment Variables](./configuration/dotenv.md) 
+  * 🖥️ [Custom Config & Endpoints](./configuration/custom_config.md) 
   * 🐋 [Docker Compose Override](./configuration/docker_override.md)
   * 🤖 [AI Setup](./configuration/ai_setup.md)
   * 🚅 [LiteLLM](./configuration/litellm.md)
